@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import AnamnesisInput from './components/AnamnesisInput';
@@ -9,7 +8,8 @@ import FinalAnamnesisModal from './components/FinalAnamnesisModal';
 import TrainingModeDisplay from './components/TrainingModeDisplay';
 import CaseHistorySidebar from './components/CaseHistorySidebar';
 import WelcomeScreen from './components/WelcomeScreen';
-import { fetchDiagnoses, fetchDiagnosisDetails, integrateFeedback, generateTestCase, parseAnamnesisText, summarizeExamResults, fetchTimelineFromHDA, evaluateStudentPerformance, fetchInvestigationResult, transcribeAndParseAnamnesisFromAudio } from './services/geminiService';
+import ApiKeyModal from './components/ApiKeyModal';
+import { initializeAi, fetchDiagnoses, fetchDiagnosisDetails, integrateFeedback, generateTestCase, parseAnamnesisText, summarizeExamResults, fetchTimelineFromHDA, evaluateStudentPerformance, fetchInvestigationResult, transcribeAndParseAnamnesisFromAudio } from './services/geminiService';
 import type { Diagnosis, AnamnesisData, DiagnosisDetail, RetroFeedbackData, TimelineEvent, EvaluationResult, InvestigationLogEntry, Specialty, StudentPlan, SavedCase } from './types';
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -56,6 +56,8 @@ const cleanAnamnesisData = (data: AnamnesisData): AnamnesisData => {
 };
 
 const App: React.FC = () => {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [anamnesisData, setAnamnesisData] = useState<AnamnesisData>(initialAnamnesisState);
   const [diagnoses, setDiagnoses] = useState<Diagnosis[]>([]);
   const [differentialDiagnoses, setDifferentialDiagnoses] = useState<Diagnosis[]>([]);
@@ -96,6 +98,14 @@ const App: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem('gemini_api_key');
+    if (storedApiKey) {
+      handleApiKeySave(storedApiKey);
+    } else {
+      setIsApiKeyModalOpen(true);
+    }
+  }, []);
 
   // Load saved cases from localStorage on initial mount
   useEffect(() => {
@@ -109,6 +119,15 @@ const App: React.FC = () => {
       setSavedCases([]);
     }
   }, []);
+  
+  const handleApiKeySave = (newApiKey: string) => {
+    if (newApiKey) {
+        setApiKey(newApiKey);
+        initializeAi(newApiKey);
+        localStorage.setItem('gemini_api_key', newApiKey);
+        setIsApiKeyModalOpen(false);
+    }
+  };
   
   const resetState = (showWelcomeScreen = true) => {
     setAnamnesisData(initialAnamnesisState);
@@ -632,7 +651,13 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-      <Header isTrainingMode={isTrainingMode} onToggleTrainingMode={handleToggleTrainingMode} onToggleHistory={handleToggleHistory} isLoading={isLoading || isGeneratingCase} />
+      <Header 
+        isTrainingMode={isTrainingMode} 
+        onToggleTrainingMode={handleToggleTrainingMode} 
+        onToggleHistory={handleToggleHistory} 
+        onShowApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        isLoading={isLoading || isGeneratingCase} 
+      />
       <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow flex">
         <input
             type="file"
@@ -659,14 +684,14 @@ const App: React.FC = () => {
             aria-hidden="true"
         />
         
-        {isWelcomeScreenVisible ? (
+        {isWelcomeScreenVisible && !isApiKeyModalOpen ? (
             <div className="w-full">
                 <WelcomeScreen 
                     onStartNewCase={handleStartNewCase}
                     onStartTraining={handleStartTraining}
                 />
             </div>
-        ) : (
+        ) : !isApiKeyModalOpen ? (
             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1.8fr)_minmax(320px,0.8fr)] gap-6 h-full w-full">
                 <div className="h-full">
                     <AnamnesisInput
@@ -729,11 +754,17 @@ const App: React.FC = () => {
                     />
                 </div>
             </div>
-        )}
+        ) : null}
       </main>
       <footer className="w-full text-center text-sm text-slate-500 dark:text-slate-400 py-4 shrink-0">
-        <p className="max-w-4xl mx-auto px-4">⚕ SemiologiX é principalmente um sistema de auxilio para uso por parte de profissionais médicos. Ao utilizar este site, você entende e aceita que não deve ser usado como substituição ao raciocínio e tomada de decisão médica. Não deve, em caso algum, ser utilizado para obter, substituir ou invalidar um diagnóstico clínico de um profissional de saúde. O diagnóstico final deve ser feito sempre por um profissional médico.</p>
+        <p className="max-w-4xl mx-auto px-4">⚕ SemiologiX é um sistema de auxilio para uso por parte de profissionais médicos. Ao utilizar este site, você entende e aceita que não deve ser usado como substituição ao raciocínio e tomada de decisão médica. Não deve, em caso algum, ser utilizado para obter, substituir ou invalidar um diagnóstico clínico de um profissional de saúde. O diagnóstico final deve ser feito sempre por um profissional médico.</p>
       </footer>
+
+      <ApiKeyModal 
+        isOpen={isApiKeyModalOpen}
+        onSave={handleApiKeySave}
+        currentKey={apiKey}
+      />
 
       <DiagnosisDetailModal
         isOpen={isDetailModalOpen}

@@ -1,16 +1,17 @@
-
 import React from 'react';
 import HeartPulseIcon from './icons/HeartPulseIcon';
 import HistoryIcon from './icons/HistoryIcon';
+import SettingsIcon from './icons/SettingsIcon';
 
 interface HeaderProps {
   isTrainingMode: boolean;
   onToggleTrainingMode: () => void;
   onToggleHistory: () => void;
+  onShowApiKeyModal: () => void;
   isLoading: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ isTrainingMode, onToggleTrainingMode, onToggleHistory, isLoading }) => {
+const Header: React.FC<HeaderProps> = ({ isTrainingMode, onToggleTrainingMode, onToggleHistory, onShowApiKeyModal, isLoading }) => {
   return (
     <header className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm dark:border-b dark:border-slate-700 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
@@ -25,6 +26,13 @@ const Header: React.FC<HeaderProps> = ({ isTrainingMode, onToggleTrainingMode, o
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+                onClick={onShowApiKeyModal}
+                className="p-2 text-sm font-semibold rounded-full transition-colors duration-300 flex items-center bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                aria-label="Configurar Chave de API"
+            >
+                <SettingsIcon className="h-5 w-5" />
+            </button>
             <button
                 onClick={onToggleHistory}
                 disabled={isLoading || isTrainingMode}

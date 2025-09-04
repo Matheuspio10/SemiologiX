@@ -1,17 +1,29 @@
-
-
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { AnamnesisData, Diagnosis, DiagnosisDetail, GeminiResponse, RetroFeedbackData, TimelineEvent, EvaluationResult, InvestigationLogEntry, Specialty, StudentPlan, AcademicSearchResult, GroundingChunk } from '../types';
 
-// Read the API key from the environment variables
-const apiKey = process.env.API_KEY;
+let ai: GoogleGenAI | null = null;
 
-if (!apiKey) {
-  throw new Error("API_KEY environment variable not set. Please configure it before running the application.");
+/**
+ * Initializes the GoogleGenAI instance with the provided API key.
+ * This must be called before any other function in this service.
+ * @param apiKey The user's Google Gemini API key.
+ */
+export const initializeAi = (apiKey: string) => {
+    if (!apiKey) {
+        console.error("Attempted to initialize AI without an API key.");
+        ai = null;
+        return;
+    }
+    ai = new GoogleGenAI({ apiKey });
+};
+
+const getAiInstance = (): GoogleGenAI => {
+    if (!ai) {
+        throw new Error("Gemini AI service has not been initialized. Please provide an API key.");
+    }
+    return ai;
 }
 
-const ai = new GoogleGenAI({ apiKey });
 
 /**
  * A wrapper to retry API calls on rate limit errors (429).
@@ -202,6 +214,7 @@ const getAnamnesisText = (data: AnamnesisData) => `
 
 export const fetchDiagnoses = async (data: AnamnesisData): Promise<GeminiResponse> => {
   try {
+    const ai = getAiInstance();
     const apiCall = () => {
         const anamnesisText = getAnamnesisText(data);
         const prompt = `
@@ -238,6 +251,7 @@ export const fetchDiagnoses = async (data: AnamnesisData): Promise<GeminiRespons
 
 export const fetchDiagnosisDetails = async (anamnesis: AnamnesisData, diagnosis: Diagnosis): Promise<DiagnosisDetail> => {
   try {
+    const ai = getAiInstance();
     const apiCall = () => {
         const anamnesisText = getAnamnesisText(anamnesis);
         const prompt = `
@@ -274,6 +288,7 @@ export const fetchDiagnosisDetails = async (anamnesis: AnamnesisData, diagnosis:
 
 export const integrateFeedback = async (currentAnamnesis: AnamnesisData, feedback: RetroFeedbackData): Promise<AnamnesisData> => {
   try {
+     const ai = getAiInstance();
      const apiCall = () => {
         const feedbackText = `
           Novas informações do checklist: ${JSON.stringify(feedback.checklistUpdates)}
@@ -316,6 +331,7 @@ export const integrateFeedback = async (currentAnamnesis: AnamnesisData, feedbac
 
 export const generateTestCase = async (difficulty: 'Fácil' | 'Intermediário' | 'Difícil' | 'Extremo' = 'Intermediário', specialty: Specialty = 'Geral'): Promise<AnamnesisData> => {
   try {
+    const ai = getAiInstance();
     const apiCall = () => {
         const prompt = `
           Aja como um médico educador experiente, criando um caso clínico para fins de simulação e treinamento.
@@ -384,6 +400,7 @@ export const fetchInvestigationResult = async (
     hiddenLabResults: string
 ): Promise<string> => {
     try {
+        const ai = getAiInstance();
         const apiCall = () => {
             const prompt = `
                 Aja como um simulador médico realista. O estudante está investigando um caso e fez uma solicitação.
@@ -432,6 +449,7 @@ export const evaluateStudentPerformance = async (
     studentPlan: StudentPlan
 ): Promise<EvaluationResult> => {
     try {
+        const ai = getAiInstance();
         const apiCall = () => {
             const anamnesisText = getAnamnesisText(anamnesis);
             const studentSubmissionText = `Hipótese Principal: ${studentHypotheses.principal}. Hipóteses Diferenciais: ${studentHypotheses.diferenciais.join(', ') || 'Nenhuma'}.`;
@@ -525,6 +543,7 @@ export const evaluateStudentPerformance = async (
 
 export const parseAnamnesisText = async (anamnesisText: string): Promise<AnamnesisData> => {
   try {
+    const ai = getAiInstance();
     const apiCall = () => {
         const prompt = `
           Aja como um assistente de IA para processamento de dados médicos.
@@ -561,6 +580,7 @@ export const parseAnamnesisText = async (anamnesisText: string): Promise<Anamnes
 
 export const transcribeAndParseAnamnesisFromAudio = async (base64Audio: string, mimeType: string): Promise<AnamnesisData> => {
   try {
+    const ai = getAiInstance();
     const apiCall = () => {
         const audioPart = {
             inlineData: {
@@ -607,6 +627,7 @@ export const transcribeAndParseAnamnesisFromAudio = async (base64Audio: string, 
 
 export const summarizeExamResults = async (examText: string): Promise<string> => {
     try {
+        const ai = getAiInstance();
         const apiCall = () => {
             const prompt = `
               Aja como um assistente de IA especialista em processar laudos de exames médicos. Sua tarefa é extrair e sumarizar APENAS os resultados clinicamente relevantes do texto bruto a seguir.
@@ -656,6 +677,7 @@ export const fetchTimelineFromHDA = async (hda: string): Promise<TimelineEvent[]
         return []; // Do not call API for short HDA
     }
     try {
+        const ai = getAiInstance();
         const apiCall = () => {
             const prompt = `
               Aja como um assistente médico especialista em análise de texto clínico.
@@ -697,6 +719,7 @@ export const fetchTimelineFromHDA = async (hda: string): Promise<TimelineEvent[]
 
 export const fetchAcademicPublications = async (diagnosisName: string): Promise<AcademicSearchResult> => {
   try {
+    const ai = getAiInstance();
     const apiCall = async () => {
       const prompt = `
         Aja como um assistente de pesquisa médica de alto nível.
@@ -761,6 +784,7 @@ export const fetchAcademicPublications = async (diagnosisName: string): Promise<
 
 export const generateProntuarySummary = async (anamnesisText: string): Promise<string> => {
     try {
+        const ai = getAiInstance();
         const apiCall = () => {
             const prompt = `
               Aja como um médico experiente e conciso. Sua tarefa é ler a anamnese completa fornecida e escrever um resumo em um único parágrafo, otimizado para ser colado em uma nota de evolução de prontuário eletrônico.
