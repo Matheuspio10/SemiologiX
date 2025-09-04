@@ -2,6 +2,7 @@ import React from 'react';
 import HeartPulseIcon from './icons/HeartPulseIcon';
 import HistoryIcon from './icons/HistoryIcon';
 import SettingsIcon from './icons/SettingsIcon';
+import MessageSquareIcon from './icons/MessageSquareIcon';
 
 interface HeaderProps {
   isTrainingMode: boolean;
@@ -33,6 +34,16 @@ const Header: React.FC<HeaderProps> = ({ isTrainingMode, onToggleTrainingMode, o
             >
                 <SettingsIcon className="h-5 w-5" />
             </button>
+            <a
+                href="https://forms.gle/rGYTEbPjwZyL1QCq5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 text-sm font-semibold rounded-md transition-colors duration-300 flex items-center bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                aria-label="Fornecer Feedback"
+            >
+                <MessageSquareIcon className="h-5 w-5 mr-2" />
+                Fornecer Feedback
+            </a>
             <button
                 onClick={onToggleHistory}
                 disabled={isLoading || isTrainingMode}
