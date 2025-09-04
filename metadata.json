@@ -1,0 +1,8 @@
+{
+  "name": "SemiologiX",
+  "description": "Uma aplicação médica para auxiliar no diagnóstico de pacientes a partir de sua anamnese, utilizando IA para sugerir as probabilidades de cada condição.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "prompt": ""
+}

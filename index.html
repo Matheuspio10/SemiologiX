@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SemiologiX - Assistente de Diagnóstico</title>
+
+    <!-- 
+      Theme Manager:
+      Forcing dark mode as requested. The 'dark' class is added directly
+      to the html element to prevent any flash of unstyled content (FOUC).
+    -->
+    <script>
+      document.documentElement.classList.add('dark');
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 
+      Tailwind Config & CDN:
+      The config object must be defined *before* loading the Tailwind CDN script.
+      This allows Tailwind's JIT compiler to use our custom settings, including
+      the 'class' strategy for dark mode.
+    -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.1.1/",
+        "react": "https://esm.sh/react@^19.1.1",
+        "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+        "@google/genai": "https://esm.sh/@google/genai@^1.13.0",
+        "pdfjs-dist": "https://esm.sh/pdfjs-dist@4.4.168/build/pdf.mjs",
+        "jspdf": "https://esm.sh/jspdf@^2.5.1"
+      }
+    }
+    </script>
+</head>
+  <body class="bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
